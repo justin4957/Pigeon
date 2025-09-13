@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.38.4">
+    <meta name="project" content="Pigeon v0.1.0">
+
+
+    <title>Pigeon 🕊️ — Pigeon v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-RLZO5U2C.css" />
+
+    <script defer src="dist/sidebar_items-11376088.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y223O6DN.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://github.com/your-org/pigeon" class="sidebar-projectName" translate="no">
+Pigeon
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras=""></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of Pigeon</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Pigeon 🕊️</h1>
+
+
+      <a href="https://github.com/your-org/pigeon/blob/main/README.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p><strong>Generic Distributed Work Processing Framework</strong></p><p>Pigeon is a minimal CLI interface for spinning up configurable EC2 instances with containerized work processors for concurrent validation and processing against a centralized control node.</p><h2 id="architecture" class="section-heading"><a href="#architecture" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Architecture</span></h2><pre><code class="makeup elixir" translate="no"><span class="err">┌</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┐</span><span class="w">    </span><span class="err">┌</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┐</span><span class="w">    </span><span class="err">┌</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┐</span><span class="w">
+</span><span class="err">│</span><span class="w">   </span><span class="nc">Control</span><span class="w"> </span><span class="nc">Node</span><span class="w">  </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">  </span><span class="nc">Worker</span><span class="w"> </span><span class="nc">Node</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">  </span><span class="nc">Worker</span><span class="w"> </span><span class="nc">Node</span><span class="w"> </span><span class="nc">N</span><span class="w">  </span><span class="err">│</span><span class="w">
+</span><span class="err">│</span><span class="w">   </span><span class="p" data-group-id="0636349103-1">(</span><span class="nc">Local</span><span class="w"> </span><span class="nc">Dev</span><span class="p" data-group-id="0636349103-1">)</span><span class="w">   </span><span class="err">│</span><span class="err">◄</span><span class="err">─</span><span class="err">─</span><span class="err">►</span><span class="err">│</span><span class="w">   </span><span class="nc">EC2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nc">Ollama</span><span class="w">  </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="nc">EC2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nc">Ollama</span><span class="w">  </span><span class="err">│</span><span class="w">
+</span><span class="err">│</span><span class="w">                 </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="o">+</span><span class="w"> </span><span class="nc">CodeLlama</span><span class="w">   </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="o">+</span><span class="w"> </span><span class="nc">CodeLlama</span><span class="w">   </span><span class="err">│</span><span class="w">
+</span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Job</span><span class="w"> </span><span class="nc">Queue</span><span class="w">    </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">                 </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">                 </span><span class="err">│</span><span class="w">
+</span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Results</span><span class="w"> </span><span class="nc">Agg</span><span class="w">  </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Work</span><span class="w"> </span><span class="nc">Proc</span><span class="w">    </span><span class="err">│</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Work</span><span class="w"> </span><span class="nc">Proc</span><span class="w">    </span><span class="err">│</span><span class="w">
+</span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Coordination</span><span class="w"> </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Validation</span><span class="w">   </span><span class="err">│</span><span class="w">    </span><span class="err">│</span><span class="w">  </span><span class="err">•</span><span class="w"> </span><span class="nc">Validation</span><span class="w">   </span><span class="err">│</span><span class="w">
+</span><span class="err">└</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┘</span><span class="w">    </span><span class="err">└</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┘</span><span class="w">    </span><span class="err">└</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">─</span><span class="err">┘</span></code></pre><h2 id="features" class="section-heading"><a href="#features" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Features</span></h2><h3 id="infrastructure-management" class="section-heading"><a href="#infrastructure-management" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">🚀 <strong>Infrastructure Management</strong></span></h3><ul><li>One-command EC2 cluster deployment</li><li>Automatic Ollama/CodeLlama container setup</li><li>Dynamic scaling (add/remove nodes)</li><li>Terraform-like infrastructure as code</li></ul><h3 id="generic-work-processing" class="section-heading"><a href="#generic-work-processing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">🧪 <strong>Generic Work Processing</strong></span></h3><ul><li>Pluggable validator modules for any work type</li><li>Distributed processing and validation</li><li>Concurrent work execution across multiple nodes</li><li>Built-in result aggregation and error handling</li></ul><h3 id="️-centralized-coordination" class="section-heading"><a href="#️-centralized-coordination" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">🕸️ <strong>Centralized Coordination</strong></span></h3><ul><li>Hub-and-spoke communication pattern</li><li>Job queue and work distribution</li><li>Real-time status monitoring</li><li>Automatic failover and retry logic</li></ul><h3 id="built-in-analytics" class="section-heading"><a href="#built-in-analytics" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">📊 <strong>Built-in Analytics</strong></span></h3><ul><li>Success rate tracking across workers</li><li>Performance timing analysis</li><li>Error aggregation and reporting</li><li>Worker health monitoring</li></ul><h2 id="quick-start" class="section-heading"><a href="#quick-start" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Quick Start</span></h2><h3 id="prerequisites" class="section-heading"><a href="#prerequisites" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Prerequisites</span></h3><ul><li>AWS CLI configured with appropriate permissions</li><li>Elixir 1.15+</li><li>Docker/Podman (for local development)</li></ul><h3 id="installation" class="section-heading"><a href="#installation" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Installation</span></h3><pre><code class="makeup bash" translate="no"><span class="">git clone https://github.com/your-org/pigeon.git
+</span><span class="">cd pigeon
+</span><span class="">mix deps.get
+</span><span class="">mix escript.build
+</span></code></pre><h3 id="basic-usage" class="section-heading"><a href="#basic-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Basic Usage</span></h3><pre><code class="makeup bash" translate="no"><span class=""># Deploy a 3-node cluster
+</span><span class="">./pigeon deploy --nodes 3 --instance-type t3.medium --region us-west-2
+</span><span class="">
+</span><span class=""># Process work using G-expression validator
+</span><span class="">./pigeon process --work-file examples/fibonacci.json --validator Pigeon.Validators.GExpressionValidator --workers 3 --iterations 5
+</span><span class="">
+</span><span class=""># Check cluster status
+</span><span class="">./pigeon status --detailed
+</span><span class="">
+</span><span class=""># Scale up to 5 nodes
+</span><span class="">./pigeon scale --nodes 5
+</span><span class="">
+</span><span class=""># Destroy everything
+</span><span class="">./pigeon destroy --force
+</span></code></pre><h2 id="validator-modules" class="section-heading"><a href="#validator-modules" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Validator Modules</span></h2><p>Pigeon accepts any module implementing the <a href="Pigeon.Work.Validator.html"><code class="inline">Pigeon.Work.Validator</code></a> behavior:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.CustomValidator</span><span class="w"> </span><span class="k" data-group-id="9966133428-1">do</span><span class="w">
+  </span><span class="na">@behaviour</span><span class="w"> </span><span class="nc">Pigeon.Work.Validator</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">validate</span><span class="p" data-group-id="9966133428-2">(</span><span class="n">work_string</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="9966133428-2">)</span><span class="w"> </span><span class="k" data-group-id="9966133428-3">do</span><span class="w">
+    </span><span class="c1"># Process work_string and return result</span><span class="w">
+    </span><span class="p" data-group-id="9966133428-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p" data-group-id="9966133428-4">}</span><span class="w">
+  </span><span class="k" data-group-id="9966133428-3">end</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">validate_batch</span><span class="p" data-group-id="9966133428-5">(</span><span class="n">work_items</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="9966133428-5">)</span><span class="w"> </span><span class="k" data-group-id="9966133428-6">do</span><span class="w">
+    </span><span class="c1"># Process multiple work items</span><span class="w">
+    </span><span class="p" data-group-id="9966133428-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">results</span><span class="p" data-group-id="9966133428-7">}</span><span class="w">
+  </span><span class="k" data-group-id="9966133428-6">end</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">metadata</span><span class="p" data-group-id="9966133428-8">(</span><span class="p" data-group-id="9966133428-8">)</span><span class="w"> </span><span class="k" data-group-id="9966133428-9">do</span><span class="w">
+    </span><span class="p" data-group-id="9966133428-10">%{</span><span class="w">
+      </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Custom Validator&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Processes custom work formats&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">supported_formats</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="9966133428-11">[</span><span class="s">&quot;text&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;json&quot;</span><span class="p" data-group-id="9966133428-11">]</span><span class="w">
+    </span><span class="p" data-group-id="9966133428-10">}</span><span class="w">
+  </span><span class="k" data-group-id="9966133428-9">end</span><span class="w">
+</span><span class="k" data-group-id="9966133428-1">end</span></code></pre><h2 id="use-cases" class="section-heading"><a href="#use-cases" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Use Cases</span></h2><h3 id="1-g-expression-validation" class="section-heading"><a href="#1-g-expression-validation" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">1. <strong>G-Expression Validation</strong></span></h3><p>Validate G-expressions (functional program representations):</p><pre><code class="makeup bash" translate="no"><span class="">./pigeon process \
+</span><span class="">  --work-file my-function.json \
+</span><span class="">  --validator Pigeon.Validators.GExpressionValidator \
+</span><span class="">  --workers 4 \
+</span><span class="">  --iterations 10
+</span></code></pre><h3 id="2-custom-code-validation" class="section-heading"><a href="#2-custom-code-validation" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">2. <strong>Custom Code Validation</strong></span></h3><p>Process any type of work with custom validators:</p><pre><code class="makeup bash" translate="no"><span class="">./pigeon process \
+</span><span class="">  --work-file source-code.txt \
+</span><span class="">  --validator MyApp.CodeValidator \
+</span><span class="">  --workers 6 \
+</span><span class="">  --iterations 5
+</span></code></pre><h3 id="3-batch-processing" class="section-heading"><a href="#3-batch-processing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">3. <strong>Batch Processing</strong></span></h3><p>Process large datasets in parallel:</p><pre><code class="makeup bash" translate="no"><span class="">./pigeon process \
+</span><span class="">  --work-file batch-data.json \
+</span><span class="">  --validator MyApp.DataProcessor \
+</span><span class="">  --workers 8
+</span></code></pre><h2 id="configuration" class="section-heading"><a href="#configuration" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Configuration</span></h2><h3 id="aws-setup" class="section-heading"><a href="#aws-setup" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">AWS Setup</span></h3><p>Pigeon requires AWS credentials and permissions for EC2, VPC, and Security Groups:</p><pre><code class="makeup bash" translate="no"><span class="">export AWS_ACCESS_KEY_ID=your_key
+</span><span class="">export AWS_SECRET_ACCESS_KEY=your_secret
+</span><span class="">export AWS_DEFAULT_REGION=us-west-2
+</span></code></pre><h3 id="instance-types" class="section-heading"><a href="#instance-types" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Instance Types</span></h3><p>Recommended instance types based on workload:</p><ul><li><strong>t3.medium</strong>: Light processing (2 vCPU, 4GB RAM)</li><li><strong>t3.large</strong>: Standard workloads (2 vCPU, 8GB RAM)</li><li><strong>c5.xlarge</strong>: CPU-intensive tasks (4 vCPU, 8GB RAM)</li><li><strong>m5.xlarge</strong>: Memory-intensive processing (4 vCPU, 16GB RAM)</li></ul><h2 id="architecture-details" class="section-heading"><a href="#architecture-details" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Architecture Details</span></h2><h3 id="reused-components-from-grapple" class="section-heading"><a href="#reused-components-from-grapple" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Reused Components from Grapple</span></h3><p>Pigeon adapts several battle-tested components from the Grapple distributed graph database:</p><ul><li><strong>Cluster Management</strong>: From <code class="inline">Grapple.Distributed.ClusterManager</code></li><li><strong>Node Discovery</strong>: From <code class="inline">Grapple.Distributed.Discovery</code></li><li><strong>Health Monitoring</strong>: From <code class="inline">Grapple.Distributed.HealthMonitor</code></li><li><strong>CLI Framework</strong>: From <code class="inline">Grapple.CLI.Shell</code></li></ul><h3 id="communication-protocol" class="section-heading"><a href="#communication-protocol" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Communication Protocol</span></h3><ul><li><strong>Hub-and-Spoke</strong>: Control node coordinates all worker communication</li><li><strong>HTTP/JSON</strong>: RESTful API for worker registration and job submission</li><li><strong>Heartbeat System</strong>: Workers send status updates every 30 seconds</li><li><strong>Graceful Failures</strong>: Automatic job reassignment on worker failures</li></ul><h3 id="container-stack" class="section-heading"><a href="#container-stack" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Container Stack</span></h3><p>Each worker node runs:</p><pre><code class="yaml">services:
+  ollama:
+    image: ollama/ollama:latest
+    ports: [&quot;11434:11434&quot;]
+
+  pigeon-worker:
+    build: containers/worker
+    ports: [&quot;8080:8080&quot;]
+    depends_on: [ollama]
+
+  model-init:
+    image: ollama/ollama:latest
+    command: [&quot;ollama&quot;, &quot;pull&quot;, &quot;codellama:7b&quot;]</code></pre><h2 id="api-reference" class="section-heading"><a href="#api-reference" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">API Reference</span></h2><h3 id="cli-commands" class="section-heading"><a href="#cli-commands" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">CLI Commands</span></h3><h4><code class="inline">deploy</code></h4><p>Deploy EC2 worker cluster</p><ul><li><code class="inline">--nodes, -n</code>: Number of worker nodes (default: 2)</li><li><code class="inline">--instance-type, -t</code>: EC2 instance type (default: t3.medium)</li><li><code class="inline">--region, -r</code>: AWS region (default: us-west-2)</li><li><code class="inline">--key-name, -k</code>: EC2 key pair name</li></ul><h4><code class="inline">process</code></h4><p>Submit work for distributed processing</p><ul><li><code class="inline">--work-file, -f</code>: File containing work data to process (required)</li><li><code class="inline">--validator, -v</code>: Validator module to use for processing (required)</li><li><code class="inline">--workers, -w</code>: Number of workers to use for processing</li><li><code class="inline">--iterations, -i</code>: Processing iterations per worker (default: 5)</li></ul><h4><code class="inline">status</code></h4><p>Show cluster status</p><ul><li><code class="inline">--detailed, -d</code>: Show detailed worker information</li></ul><h4><code class="inline">scale</code></h4><p>Scale cluster up or down</p><ul><li><code class="inline">--nodes, -n</code>: Target number of nodes (required)</li></ul><h4><code class="inline">destroy</code></h4><p>Destroy entire cluster</p><ul><li><code class="inline">--force, -f</code>: Skip confirmation prompt</li></ul><h3 id="programmatic-api" class="section-heading"><a href="#programmatic-api" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Programmatic API</span></h3><pre><code class="makeup elixir" translate="no"><span class="c1"># Deploy cluster</span><span class="w">
+</span><span class="p" data-group-id="1218315234-1">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">cluster_info</span><span class="p" data-group-id="1218315234-1">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">deploy_cluster</span><span class="p" data-group-id="1218315234-2">(</span><span class="ss">nodes</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="ss">instance_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;t3.large&quot;</span><span class="p" data-group-id="1218315234-2">)</span><span class="w">
+
+</span><span class="c1"># Process work with validator</span><span class="w">
+</span><span class="p" data-group-id="1218315234-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">results</span><span class="p" data-group-id="1218315234-3">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">process_work</span><span class="p" data-group-id="1218315234-4">(</span><span class="n">work_data</span><span class="p">,</span><span class="w"> </span><span class="nc">MyApp.Validator</span><span class="p">,</span><span class="w"> </span><span class="ss">workers</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="ss">iterations</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p" data-group-id="1218315234-4">)</span><span class="w">
+
+</span><span class="c1"># Process batch work</span><span class="w">
+</span><span class="p" data-group-id="1218315234-5">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">results</span><span class="p" data-group-id="1218315234-5">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">process_work_batch</span><span class="p" data-group-id="1218315234-6">(</span><span class="n">work_items</span><span class="p">,</span><span class="w"> </span><span class="nc">MyApp.Validator</span><span class="p">,</span><span class="w"> </span><span class="ss">workers</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="1218315234-6">)</span><span class="w">
+
+</span><span class="c1"># Check status</span><span class="w">
+</span><span class="p" data-group-id="1218315234-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p" data-group-id="1218315234-7">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">cluster_status</span><span class="p" data-group-id="1218315234-8">(</span><span class="p" data-group-id="1218315234-8">)</span><span class="w">
+
+</span><span class="c1"># Scale cluster</span><span class="w">
+</span><span class="p" data-group-id="1218315234-9">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="bp">_</span><span class="p" data-group-id="1218315234-9">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">scale_cluster</span><span class="p" data-group-id="1218315234-10">(</span><span class="mi">6</span><span class="p" data-group-id="1218315234-10">)</span><span class="w">
+
+</span><span class="c1"># Cleanup</span><span class="w">
+</span><span class="p" data-group-id="1218315234-11">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="bp">_</span><span class="p" data-group-id="1218315234-11">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Pigeon</span><span class="o">.</span><span class="n">destroy_cluster</span><span class="p" data-group-id="1218315234-12">(</span><span class="p" data-group-id="1218315234-12">)</span></code></pre><h3 id="validator-behavior-api" class="section-heading"><a href="#validator-behavior-api" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Validator Behavior API</span></h3><p>All validators must implement the <a href="Pigeon.Work.Validator.html"><code class="inline">Pigeon.Work.Validator</code></a> behavior:</p><pre><code class="makeup elixir" translate="no"><span class="na">@callback</span><span class="w"> </span><span class="n">validate</span><span class="p" data-group-id="3394985605-1">(</span><span class="n">work_string</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-2">(</span><span class="p" data-group-id="3394985605-2">)</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">keyword</span><span class="p" data-group-id="3394985605-3">(</span><span class="p" data-group-id="3394985605-3">)</span><span class="p" data-group-id="3394985605-1">)</span><span class="w"> </span><span class="o">::</span><span class="w">
+  </span><span class="p" data-group-id="3394985605-4">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">any</span><span class="p" data-group-id="3394985605-5">(</span><span class="p" data-group-id="3394985605-5">)</span><span class="p" data-group-id="3394985605-4">}</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p" data-group-id="3394985605-6">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="n">reason</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">any</span><span class="p" data-group-id="3394985605-7">(</span><span class="p" data-group-id="3394985605-7">)</span><span class="p" data-group-id="3394985605-6">}</span><span class="w">
+
+</span><span class="na">@callback</span><span class="w"> </span><span class="n">validate_batch</span><span class="p" data-group-id="3394985605-8">(</span><span class="n">work_items</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="p" data-group-id="3394985605-9">[</span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-10">(</span><span class="p" data-group-id="3394985605-10">)</span><span class="p" data-group-id="3394985605-9">]</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">keyword</span><span class="p" data-group-id="3394985605-11">(</span><span class="p" data-group-id="3394985605-11">)</span><span class="p" data-group-id="3394985605-8">)</span><span class="w"> </span><span class="o">::</span><span class="w">
+  </span><span class="p" data-group-id="3394985605-12">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="p" data-group-id="3394985605-13">[</span><span class="n">any</span><span class="p" data-group-id="3394985605-14">(</span><span class="p" data-group-id="3394985605-14">)</span><span class="p" data-group-id="3394985605-13">]</span><span class="p" data-group-id="3394985605-12">}</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p" data-group-id="3394985605-15">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="n">reason</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">any</span><span class="p" data-group-id="3394985605-16">(</span><span class="p" data-group-id="3394985605-16">)</span><span class="p" data-group-id="3394985605-15">}</span><span class="w">
+
+</span><span class="na">@callback</span><span class="w"> </span><span class="n">metadata</span><span class="p" data-group-id="3394985605-17">(</span><span class="p" data-group-id="3394985605-17">)</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="p" data-group-id="3394985605-18">%{</span><span class="w">
+  </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-19">(</span><span class="p" data-group-id="3394985605-19">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">version</span><span class="p">:</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-20">(</span><span class="p" data-group-id="3394985605-20">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">description</span><span class="p">:</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-21">(</span><span class="p" data-group-id="3394985605-21">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">supported_formats</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3394985605-22">[</span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-23">(</span><span class="p" data-group-id="3394985605-23">)</span><span class="p" data-group-id="3394985605-22">]</span><span class="w">
+</span><span class="p" data-group-id="3394985605-18">}</span><span class="w">
+
+</span><span class="na">@callback</span><span class="w"> </span><span class="n">generate_test_cases</span><span class="p" data-group-id="3394985605-24">(</span><span class="n">count</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">integer</span><span class="p" data-group-id="3394985605-25">(</span><span class="p" data-group-id="3394985605-25">)</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">keyword</span><span class="p" data-group-id="3394985605-26">(</span><span class="p" data-group-id="3394985605-26">)</span><span class="p" data-group-id="3394985605-24">)</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="p" data-group-id="3394985605-27">[</span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="3394985605-28">(</span><span class="p" data-group-id="3394985605-28">)</span><span class="p" data-group-id="3394985605-27">]</span></code></pre><h2 id="built-in-validators" class="section-heading"><a href="#built-in-validators" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Built-in Validators</span></h2><h3 id="g-expression-validator" class="section-heading"><a href="#g-expression-validator" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">G-Expression Validator</span></h3><p>Validates G-expressions (generalized functional program representations):</p><pre><code class="makeup bash" translate="no"><span class="">./pigeon process \
+</span><span class="">  --work-file fibonacci.json \
+</span><span class="">  --validator Pigeon.Validators.GExpressionValidator \
+</span><span class="">  --workers 3
+</span></code></pre><p>Supports:</p><ul><li>Syntax validation</li><li>Semantic analysis</li><li>Variable binding checks</li><li>Test case generation</li></ul><h2 id="development" class="section-heading"><a href="#development" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Development</span></h2><h3 id="running-locally" class="section-heading"><a href="#running-locally" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Running Locally</span></h3><p>For development and testing without AWS:</p><pre><code class="makeup bash" translate="no"><span class=""># Start control node
+</span><span class="">mix run --no-halt
+</span><span class="">
+</span><span class=""># In separate terminal, simulate workers
+</span><span class="">docker-compose -f containers/compose.yml up
+</span></code></pre><h3 id="testing" class="section-heading"><a href="#testing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Testing</span></h3><pre><code class="makeup bash" translate="no"><span class=""># Run unit tests
+</span><span class="">mix test
+</span><span class="">
+</span><span class=""># Run integration tests (requires AWS)
+</span><span class="">mix test --include integration
+</span><span class="">
+</span><span class=""># Run with coverage
+</span><span class="">mix test --cover
+</span><span class="">
+</span><span class=""># Generate documentation
+</span><span class="">mix docs
+</span></code></pre><h3 id="building-containers" class="section-heading"><a href="#building-containers" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Building Containers</span></h3><pre><code class="makeup bash" translate="no"><span class=""># Build worker container
+</span><span class="">docker build -f containers/worker/Dockerfile -t pigeon/worker:latest .
+</span><span class="">
+</span><span class=""># Build and push to registry
+</span><span class="">docker build -t your-registry/pigeon-worker:v1.0 .
+</span><span class="">docker push your-registry/pigeon-worker:v1.0
+</span></code></pre><h3 id="creating-custom-validators" class="section-heading"><a href="#creating-custom-validators" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Creating Custom Validators</span></h3><ol><li>Implement the <a href="Pigeon.Work.Validator.html"><code class="inline">Pigeon.Work.Validator</code></a> behavior</li><li>Add validation logic for your work type</li><li>Include metadata describing your validator</li><li>Optionally implement test case generation</li></ol><p>Example:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyProject.JsonValidator</span><span class="w"> </span><span class="k" data-group-id="3202643260-1">do</span><span class="w">
+  </span><span class="na">@behaviour</span><span class="w"> </span><span class="nc">Pigeon.Work.Validator</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">validate</span><span class="p" data-group-id="3202643260-2">(</span><span class="n">json_string</span><span class="p">,</span><span class="w"> </span><span class="c">_opts</span><span class="p" data-group-id="3202643260-2">)</span><span class="w"> </span><span class="k" data-group-id="3202643260-3">do</span><span class="w">
+    </span><span class="k">case</span><span class="w"> </span><span class="nc">Jason</span><span class="o">.</span><span class="n">decode</span><span class="p" data-group-id="3202643260-4">(</span><span class="n">json_string</span><span class="p" data-group-id="3202643260-4">)</span><span class="w"> </span><span class="k" data-group-id="3202643260-5">do</span><span class="w">
+      </span><span class="p" data-group-id="3202643260-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="c">_data</span><span class="p" data-group-id="3202643260-6">}</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p" data-group-id="3202643260-7">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3202643260-8">%{</span><span class="ss">valid</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="3202643260-8">}</span><span class="p" data-group-id="3202643260-7">}</span><span class="w">
+      </span><span class="p" data-group-id="3202643260-9">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="n">reason</span><span class="p" data-group-id="3202643260-9">}</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p" data-group-id="3202643260-10">{</span><span class="ss">:error</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3202643260-11">%{</span><span class="ss">message</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Invalid JSON: </span><span class="si" data-group-id="3202643260-12">#{</span><span class="n">reason</span><span class="si" data-group-id="3202643260-12">}</span><span class="s">&quot;</span><span class="p" data-group-id="3202643260-11">}</span><span class="p" data-group-id="3202643260-10">}</span><span class="w">
+    </span><span class="k" data-group-id="3202643260-5">end</span><span class="w">
+  </span><span class="k" data-group-id="3202643260-3">end</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">validate_batch</span><span class="p" data-group-id="3202643260-13">(</span><span class="n">json_strings</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="3202643260-13">)</span><span class="w"> </span><span class="k" data-group-id="3202643260-14">do</span><span class="w">
+    </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Enum</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="3202643260-15">(</span><span class="n">json_strings</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">validate</span><span class="p" data-group-id="3202643260-16">(</span><span class="ni">&amp;1</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="3202643260-16">)</span><span class="p" data-group-id="3202643260-15">)</span><span class="w">
+    </span><span class="p" data-group-id="3202643260-17">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">results</span><span class="p" data-group-id="3202643260-17">}</span><span class="w">
+  </span><span class="k" data-group-id="3202643260-14">end</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">metadata</span><span class="w"> </span><span class="k" data-group-id="3202643260-18">do</span><span class="w">
+    </span><span class="p" data-group-id="3202643260-19">%{</span><span class="w">
+      </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;JSON Validator&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Validates JSON syntax&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">supported_formats</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3202643260-20">[</span><span class="s">&quot;json&quot;</span><span class="p" data-group-id="3202643260-20">]</span><span class="w">
+    </span><span class="p" data-group-id="3202643260-19">}</span><span class="w">
+  </span><span class="k" data-group-id="3202643260-18">end</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">generate_test_cases</span><span class="p" data-group-id="3202643260-21">(</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="c">_opts</span><span class="p" data-group-id="3202643260-21">)</span><span class="w"> </span><span class="k" data-group-id="3202643260-22">do</span><span class="w">
+    </span><span class="nc">Enum</span><span class="o">.</span><span class="n">map</span><span class="p" data-group-id="3202643260-23">(</span><span class="mi">1</span><span class="o">..</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="k" data-group-id="3202643260-24">fn</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+      </span><span class="nc">Jason</span><span class="o">.</span><span class="n">encode!</span><span class="p" data-group-id="3202643260-25">(</span><span class="p" data-group-id="3202643260-26">%{</span><span class="s">&quot;test&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;valid&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="3202643260-26">}</span><span class="p" data-group-id="3202643260-25">)</span><span class="w">
+    </span><span class="k" data-group-id="3202643260-24">end</span><span class="p" data-group-id="3202643260-23">)</span><span class="w">
+  </span><span class="k" data-group-id="3202643260-22">end</span><span class="w">
+</span><span class="k" data-group-id="3202643260-1">end</span></code></pre><h2 id="contributing" class="section-heading"><a href="#contributing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Contributing</span></h2><ol><li>Fork the repository</li><li>Create a feature branch (<code class="inline">git checkout -b feature/amazing-feature</code>)</li><li>Commit your changes (<code class="inline">git commit -m 'Add amazing feature'</code>)</li><li>Push to the branch (<code class="inline">git push origin feature/amazing-feature</code>)</li><li>Open a Pull Request</li></ol><h2 id="license" class="section-heading"><a href="#license" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">License</span></h2><p>MIT License - see LICENSE file for details.</p><h2 id="acknowledgments" class="section-heading"><a href="#acknowledgments" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Acknowledgments</span></h2><ul><li><strong>Grapple</strong>: For distributed infrastructure components</li><li><strong>Ollama</strong>: For local AI model serving</li><li><strong>CodeLlama</strong>: For code generation capabilities</li><li><strong>Melas</strong>: For validation patterns and inspiration</li></ul>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+  </div>
+  <div class="bottom-actions-item">
+
+  </div>
+</div>
+    <footer class="footer">
+      <p>
+
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
+
+            <a href="Pigeon.epub" title="ePub version">
+              Download ePub version
+            </a>
+
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.4) for the
+
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+      </p>
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,80 @@
+# Pigeon Distributed AI Infrastructure
+version: '3.8'
+
+services:
+  # Ollama AI Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pigeon-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./models:/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        reservations:
+          memory: 4G
+        limits:
+          memory: 8G
+
+  # Pigeon Worker Service
+  pigeon-worker:
+    build:
+      context: .
+      dockerfile: containers/worker/Dockerfile
+    container_name: pigeon-worker
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/config:ro
+      - ./logs:/logs
+      - ./data:/data
+    environment:
+      - PIGEON_WORKER_PORT=8080
+      - OLLAMA_HOST=ollama:11434
+      - MIX_ENV=prod
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Model Initialization Service
+  model-init:
+    image: ollama/ollama:latest
+    container_name: pigeon-model-init
+    volumes:
+      - ollama_data:/root/.ollama
+    depends_on:
+      - ollama
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama to be ready...' &&
+        while ! curl -f http://ollama:11434/api/tags; do sleep 5; done &&
+        echo 'Pulling CodeLlama models...' &&
+        ollama pull codellama:7b &&
+        ollama pull codellama:13b &&
+        ollama pull starcoder:7b &&
+        echo 'Models ready!'
+      "
+    restart: "no"
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  default:
+    name: pigeon-network

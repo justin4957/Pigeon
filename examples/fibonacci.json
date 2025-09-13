@@ -1,0 +1,95 @@
+{
+  "challenge": "Fibonacci Sequence",
+  "description": "Recursive Fibonacci implementation",
+  "gexpression": {
+    "g": "fix",
+    "v": {
+      "g": "lam",
+      "v": {
+        "params": ["fib"],
+        "body": {
+          "g": "lam",
+          "v": {
+            "params": ["n"],
+            "body": {
+              "g": "match",
+              "v": {
+                "expr": {
+                  "g": "app",
+                  "v": {
+                    "fn": {"g": "ref", "v": "<="},
+                    "args": {
+                      "g": "vec",
+                      "v": [
+                        {"g": "ref", "v": "n"},
+                        {"g": "lit", "v": 1}
+                      ]
+                    }
+                  }
+                },
+                "branches": [
+                  {
+                    "pattern": {"lit_pattern": true},
+                    "result": {"g": "ref", "v": "n"}
+                  },
+                  {
+                    "pattern": "else_pattern",
+                    "result": {
+                      "g": "app",
+                      "v": {
+                        "fn": {"g": "ref", "v": "+"},
+                        "args": {
+                          "g": "vec",
+                          "v": [
+                            {
+                              "g": "app",
+                              "v": {
+                                "fn": {"g": "ref", "v": "fib"},
+                                "args": {
+                                  "g": "app",
+                                  "v": {
+                                    "fn": {"g": "ref", "v": "-"},
+                                    "args": {
+                                      "g": "vec",
+                                      "v": [
+                                        {"g": "ref", "v": "n"},
+                                        {"g": "lit", "v": 1}
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "g": "app",
+                              "v": {
+                                "fn": {"g": "ref", "v": "fib"},
+                                "args": {
+                                  "g": "app",
+                                  "v": {
+                                    "fn": {"g": "ref", "v": "-"},
+                                    "args": {
+                                      "g": "vec",
+                                      "v": [
+                                        {"g": "ref", "v": "n"},
+                                        {"g": "lit", "v": 2}
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
