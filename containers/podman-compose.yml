@@ -1,0 +1,103 @@
+# Podman Compose file for local Pigeon development
+# Run with: podman-compose up
+version: '3.8'
+
+services:
+  # Pigeon Worker 1
+  pigeon-worker-1:
+    build:
+      context: ..
+      dockerfile: containers/local-worker/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - WORKER_ID=worker-1
+      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_PORT=4040
+      - WORKER_PORT=8080
+      - WORKER_TYPE=general
+      - MIX_ENV=prod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Pigeon Worker 2
+  pigeon-worker-2:
+    build:
+      context: ..
+      dockerfile: containers/local-worker/Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - WORKER_ID=worker-2
+      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_PORT=4040
+      - WORKER_PORT=8080
+      - WORKER_TYPE=general
+      - MIX_ENV=prod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # CPU-optimized worker (optional)
+  pigeon-worker-cpu:
+    build:
+      context: ..
+      dockerfile: containers/local-worker/Dockerfile
+    ports:
+      - "8083:8080"
+    environment:
+      - WORKER_ID=worker-cpu
+      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_PORT=4040
+      - WORKER_PORT=8080
+      - WORKER_TYPE=cpu-intensive
+      - MIX_ENV=prod
+    cpus: 2.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    profiles:
+      - extended
+
+  # Memory-optimized worker (optional)
+  pigeon-worker-memory:
+    build:
+      context: ..
+      dockerfile: containers/local-worker/Dockerfile
+    ports:
+      - "8084:8080"
+    environment:
+      - WORKER_ID=worker-memory
+      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_PORT=4040
+      - WORKER_PORT=8080
+      - WORKER_TYPE=memory-intensive
+      - MIX_ENV=prod
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    profiles:
+      - extended
+
+# Optional: Create a network for better container communication
+networks:
+  default:
+    driver: bridge
