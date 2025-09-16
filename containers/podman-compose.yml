@@ -1,22 +1,50 @@
 # Podman Compose file for local Pigeon development
-# Run with: podman-compose up
+# Run with: podman-compose up -d or ./scripts/dev.sh start
 version: '3.8'
 
 services:
+  # Development Control Node (optional - can run on host)
+  control-node:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile.dev
+    container_name: pigeon_control_dev
+    ports:
+      - "4040:4040"
+    volumes:
+      # Mount source code for hot reload
+      - ..:/app:Z
+      - /app/deps  # Anonymous volume to preserve compiled deps
+      - /app/_build  # Anonymous volume to preserve compiled build
+      # Use named volumes for persistence across container recreations
+      - deps_cache:/tmp/deps_cache
+      - build_cache:/tmp/build_cache
+    environment:
+      - MIX_ENV=dev
+      - WORKER_NODES=pigeon-worker-1:8080,pigeon-worker-2:8080
+    networks:
+      - pigeon_network
+    profiles:
+      - control  # Start with: ./scripts/dev.sh start --control-in-container
+    restart: unless-stopped
+
   # Pigeon Worker 1
   pigeon-worker-1:
     build:
       context: ..
       dockerfile: containers/local-worker/Dockerfile
+    container_name: pigeon_worker_1
     ports:
       - "8081:8080"
     environment:
       - WORKER_ID=worker-1
-      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_HOST=control-node
       - CONTROL_NODE_PORT=4040
       - WORKER_PORT=8080
       - WORKER_TYPE=general
       - MIX_ENV=prod
+    networks:
+      - pigeon_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -30,15 +58,18 @@ services:
     build:
       context: ..
       dockerfile: containers/local-worker/Dockerfile
+    container_name: pigeon_worker_2
     ports:
       - "8082:8080"
     environment:
       - WORKER_ID=worker-2
-      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_HOST=control-node
       - CONTROL_NODE_PORT=4040
       - WORKER_PORT=8080
       - WORKER_TYPE=general
       - MIX_ENV=prod
+    networks:
+      - pigeon_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -52,16 +83,19 @@ services:
     build:
       context: ..
       dockerfile: containers/local-worker/Dockerfile
+    container_name: pigeon_worker_cpu
     ports:
       - "8083:8080"
     environment:
       - WORKER_ID=worker-cpu
-      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_HOST=control-node
       - CONTROL_NODE_PORT=4040
       - WORKER_PORT=8080
       - WORKER_TYPE=cpu-intensive
       - MIX_ENV=prod
     cpus: 2.0
+    networks:
+      - pigeon_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -77,16 +111,19 @@ services:
     build:
       context: ..
       dockerfile: containers/local-worker/Dockerfile
+    container_name: pigeon_worker_memory
     ports:
       - "8084:8080"
     environment:
       - WORKER_ID=worker-memory
-      - CONTROL_NODE_HOST=host.containers.internal
+      - CONTROL_NODE_HOST=control-node
       - CONTROL_NODE_PORT=4040
       - WORKER_PORT=8080
       - WORKER_TYPE=memory-intensive
       - MIX_ENV=prod
     mem_limit: 1g
+    networks:
+      - pigeon_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -97,7 +134,12 @@ services:
     profiles:
       - extended
 
-# Optional: Create a network for better container communication
+volumes:
+  deps_cache:
+    driver: local
+  build_cache:
+    driver: local
+
 networks:
-  default:
+  pigeon_network:
     driver: bridge

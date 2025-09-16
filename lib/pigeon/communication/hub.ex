@@ -190,20 +190,8 @@ defmodule Pigeon.Communication.Hub do
   defp start_communication_server(opts) do
     port = opts[:port] || 4040
 
-    cowboy_opts = %{
-      port: port,
-      dispatch: [
-        {:_, [
-          {"/api/worker/register", Pigeon.Communication.Handlers.RegisterHandler, []},
-          {"/api/worker/heartbeat", Pigeon.Communication.Handlers.HeartbeatHandler, []},
-          {"/api/worker/result", Pigeon.Communication.Handlers.ResultHandler, []},
-          {"/api/jobs/:job_id", Pigeon.Communication.Handlers.JobHandler, []},
-          {"/health", Pigeon.Communication.Handlers.HealthHandler, []}
-        ]}
-      ]
-    }
-
-    case :cowboy.start_clear(:pigeon_http, cowboy_opts) do
+    # Start the HTTP server using Bandit
+    case Bandit.start_link(plug: Pigeon.Communication.Router, port: port) do
       {:ok, _pid} ->
         Logger.info("Communication server started on port #{port}")
         :ok
