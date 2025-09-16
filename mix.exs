@@ -36,6 +36,10 @@ defmodule Pigeon.MixProject do
       {:req, "~> 0.5"},
       {:finch, "~> 0.18"},
 
+      # HTTP Server
+      {:plug, "~> 1.15"},
+      {:bandit, "~> 1.0"},
+
       # Infrastructure
       {:ex_aws, "~> 2.4"},
       {:ex_aws_ec2, "~> 2.0"},

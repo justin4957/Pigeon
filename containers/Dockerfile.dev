@@ -1,0 +1,61 @@
+# Development Dockerfile for Pigeon Framework
+# Optimized for hot reload and development workflow
+
+ARG ELIXIR_VERSION=1.17.3
+ARG OTP_VERSION=27.1
+ARG DEBIAN_VERSION=bookworm-20241218-slim
+
+FROM elixir:${ELIXIR_VERSION}-slim
+
+# Install build dependencies for development
+RUN apt-get update -y && \
+    apt-get install -y \
+      build-essential \
+      git \
+      curl \
+      ca-certificates \
+      gnupg \
+      lsb-release \
+      inotify-tools \
+      gosu && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for development
+RUN useradd --create-home --shell /bin/bash --user-group --uid 1001 pigeon
+
+# Set work directory
+WORKDIR /app
+
+# Change ownership of the app directory
+RUN chown pigeon:pigeon /app
+
+# Install hex + rebar globally as root first
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+# Set development environment
+ENV MIX_ENV=dev
+ENV HOME=/app
+
+# Copy dependency files first (for better caching)
+COPY --chown=pigeon:pigeon mix.exs mix.lock ./
+
+# Install dependencies
+RUN mix deps.get
+
+# Copy configuration
+COPY --chown=pigeon:pigeon config ./config/
+
+# Compile dependencies
+RUN mix deps.compile
+
+# Expose HTTP server port
+EXPOSE 4040
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:4040/health || exit 1
+
+# Default command for development server
+CMD ["mix", "run", "--no-halt"]
