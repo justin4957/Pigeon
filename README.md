@@ -89,7 +89,7 @@ make extended
 make status
 
 # Process work locally
-./pigeon process --work-file examples/fibonacci.json --validator Pigeon.Validators.GExpressionValidator --workers 3
+./pigeon process --work-file examples/sample_data.json --validator MyApp.DataValidator --workers 3
 
 # Run CI/CD pipeline locally (before committing)
 make ci
@@ -130,7 +130,7 @@ For production workloads or when local resources are insufficient:
 ./pigeon deploy --nodes 3 --instance-type t3.medium --region us-west-2
 
 # Process work using cloud workers
-./pigeon process --work-file examples/fibonacci.json --validator Pigeon.Validators.GExpressionValidator --workers 3 --iterations 5
+./pigeon process --work-file examples/sample_data.json --validator MyApp.DataValidator --workers 3 --iterations 5
 
 # Check cluster status
 ./pigeon status --detailed
@@ -173,8 +173,8 @@ end
 
 ## Use Cases
 
-### 1. **Local G-Expression Validation**
-Validate G-expressions using local development environment:
+### 1. **Local Data Validation**
+Validate data structures using local development environment:
 
 ```bash
 # Start development environment
@@ -182,8 +182,8 @@ make dev
 
 # Process with local workers
 ./pigeon process \
-  --work-file my-function.json \
-  --validator Pigeon.Validators.GExpressionValidator \
+  --work-file my-data.json \
+  --validator MyApp.DataValidator \
   --workers 4 \
   --iterations 10
 ```
@@ -420,20 +420,20 @@ All validators must implement the `Pigeon.Work.Validator` behavior:
 
 ## Built-in Validators
 
-### G-Expression Validator
-Validates G-expressions (generalized functional program representations):
+### Example Validators
+Pigeon includes example validators for common data formats:
 
 ```bash
 ./pigeon process \
-  --work-file fibonacci.json \
-  --validator Pigeon.Validators.GExpressionValidator \
+  --work-file examples/sample_data.json \
+  --validator MyApp.DataValidator \
   --workers 3
 ```
 
-Supports:
+Common validation features:
 - Syntax validation
-- Semantic analysis
-- Variable binding checks
+- Schema validation
+- Data integrity checks
 - Test case generation
 
 ## AWS EC2 Cloud Deployment

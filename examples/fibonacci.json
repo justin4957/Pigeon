@@ -1,95 +1,18 @@
 {
   "challenge": "Fibonacci Sequence",
-  "description": "Recursive Fibonacci implementation",
-  "gexpression": {
-    "g": "fix",
-    "v": {
-      "g": "lam",
-      "v": {
-        "params": ["fib"],
-        "body": {
-          "g": "lam",
-          "v": {
-            "params": ["n"],
-            "body": {
-              "g": "match",
-              "v": {
-                "expr": {
-                  "g": "app",
-                  "v": {
-                    "fn": {"g": "ref", "v": "<="},
-                    "args": {
-                      "g": "vec",
-                      "v": [
-                        {"g": "ref", "v": "n"},
-                        {"g": "lit", "v": 1}
-                      ]
-                    }
-                  }
-                },
-                "branches": [
-                  {
-                    "pattern": {"lit_pattern": true},
-                    "result": {"g": "ref", "v": "n"}
-                  },
-                  {
-                    "pattern": "else_pattern",
-                    "result": {
-                      "g": "app",
-                      "v": {
-                        "fn": {"g": "ref", "v": "+"},
-                        "args": {
-                          "g": "vec",
-                          "v": [
-                            {
-                              "g": "app",
-                              "v": {
-                                "fn": {"g": "ref", "v": "fib"},
-                                "args": {
-                                  "g": "app",
-                                  "v": {
-                                    "fn": {"g": "ref", "v": "-"},
-                                    "args": {
-                                      "g": "vec",
-                                      "v": [
-                                        {"g": "ref", "v": "n"},
-                                        {"g": "lit", "v": 1}
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "g": "app",
-                              "v": {
-                                "fn": {"g": "ref", "v": "fib"},
-                                "args": {
-                                  "g": "app",
-                                  "v": {
-                                    "fn": {"g": "ref", "v": "-"},
-                                    "args": {
-                                      "g": "vec",
-                                      "v": [
-                                        {"g": "ref", "v": "n"},
-                                        {"g": "lit", "v": 2}
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  "description": "Mathematical sequence implementation",
+  "algorithm": "recursive",
+  "input_range": [0, 20],
+  "expected_output": [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765],
+  "test_cases": [
+    {"input": 0, "expected": 0},
+    {"input": 1, "expected": 1},
+    {"input": 5, "expected": 5},
+    {"input": 10, "expected": 55}
+  ],
+  "validation_criteria": [
+    "input_bounds_check",
+    "output_type_validation",
+    "sequence_correctness"
+  ]
 }
