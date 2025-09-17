@@ -20,23 +20,22 @@ mix deps.get
 In the IEx session from terminal 3:
 
 ```elixir
-# Test G-expression processing
+# Test data processing
 work_data = """
 {
-  "g": "app",
-  "v": {
-    "fn": {"g": "ref", "v": "+"},
-    "args": {
-      "g": "vec",
-      "v": [{"g": "lit", "v": 1}, {"g": "lit", "v": 2}]
-    }
+  "operation": "add",
+  "operands": [1, 2],
+  "expected_result": 3,
+  "metadata": {
+    "type": "arithmetic",
+    "complexity": "simple"
   }
 }
 """
 
 {:ok, results} = Pigeon.process_work(
   work_data,
-  Pigeon.Validators.GExpressionValidator,
+  MyApp.DataValidator,
   workers: 2,
   iterations: 3
 )
@@ -63,7 +62,7 @@ Expected output:
 1. **Control Node**: Started on port 4040, coordinates all work
 2. **Worker 1**: Podman container on port 8081, processes work
 3. **Worker 2**: Podman container on port 8082, processes work
-4. **Work Distribution**: G-expression sent to workers, results aggregated
+4. **Work Distribution**: Data sent to workers, results aggregated
 
 ## 🛠️ Troubleshooting
 

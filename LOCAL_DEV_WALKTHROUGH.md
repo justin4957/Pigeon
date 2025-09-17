@@ -113,22 +113,18 @@ IO.inspect(status.workers)
 
 ### Step 5: Test Work Processing
 
-Test the G-expression validator:
+Test the data validator:
 
 ```elixir
-# Load a test G-expression
+# Load test data
 work_data = """
 {
-  "g": "app",
-  "v": {
-    "fn": {"g": "ref", "v": "+"},
-    "args": {
-      "g": "vec",
-      "v": [
-        {"g": "lit", "v": 1},
-        {"g": "lit", "v": 2}
-      ]
-    }
+  "operation": "add",
+  "operands": [1, 2],
+  "expected_result": 3,
+  "metadata": {
+    "type": "arithmetic",
+    "complexity": "simple"
   }
 }
 """
@@ -136,7 +132,7 @@ work_data = """
 # Process across workers
 {:ok, results} = Pigeon.process_work(
   work_data,
-  Pigeon.Validators.GExpressionValidator,
+  MyApp.DataValidator,
   workers: 2,
   iterations: 3
 )
@@ -233,7 +229,7 @@ Test resilience:
 # This should still work with remaining worker
 {:ok, results} = Pigeon.process_work(
   work_data,
-  Pigeon.Validators.GExpressionValidator,
+  MyApp.DataValidator,
   workers: 1,
   iterations: 2
 )
