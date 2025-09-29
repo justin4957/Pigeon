@@ -50,7 +50,8 @@ defmodule Pigeon.Work.ProcessorTest do
   end
 
   describe "process_distributed/3" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "processes work with valid validator" do
       work_data = "test_work"
       validator_module = MockValidator
@@ -72,7 +73,8 @@ defmodule Pigeon.Work.ProcessorTest do
   end
 
   describe "process_batch_distributed/3" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "processes batch work with valid validator" do
       work_items = ["work1", "work2", "work3"]
       validator_module = MockValidator

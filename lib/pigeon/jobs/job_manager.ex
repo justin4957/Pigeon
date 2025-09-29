@@ -66,10 +66,7 @@ defmodule Pigeon.Jobs.JobManager do
     }
 
     new_jobs = Map.put(state.jobs, job_id, job)
-    new_state = %{state |
-      jobs: new_jobs,
-      job_counter: state.job_counter + 1
-    }
+    new_state = %{state | jobs: new_jobs, job_counter: state.job_counter + 1}
 
     {:reply, {:ok, job_id}, new_state}
   end
@@ -117,16 +114,18 @@ defmodule Pigeon.Jobs.JobManager do
         new_job_results = Map.put(state.job_results, job_id, updated_results)
 
         # Update job completion count
-        updated_job = %{job |
-          completion_count: job.completion_count + 1,
-          status: if(job.completion_count + 1 >= length(job.assigned_workers), do: :completed, else: :running)
+        updated_job = %{
+          job
+          | completion_count: job.completion_count + 1,
+            status:
+              if(job.completion_count + 1 >= length(job.assigned_workers),
+                do: :completed,
+                else: :running
+              )
         }
 
         new_jobs = Map.put(state.jobs, job_id, updated_job)
-        new_state = %{state |
-          jobs: new_jobs,
-          job_results: new_job_results
-        }
+        new_state = %{state | jobs: new_jobs, job_results: new_job_results}
 
         {:noreply, new_state}
     end

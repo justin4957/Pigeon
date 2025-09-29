@@ -301,6 +301,7 @@ defmodule Pigeon.CLI do
 
     if results.errors > 0 do
       IO.puts("\n❌ Errors encountered:")
+
       results.error_details
       |> Enum.each(fn error ->
         IO.puts("   • #{error.worker}: #{error.message}")
@@ -308,6 +309,7 @@ defmodule Pigeon.CLI do
     end
 
     IO.puts("\n📊 Results by worker:")
+
     results.worker_results
     |> Enum.each(fn {worker, worker_result} ->
       success_rate = Float.round(worker_result.success_rate * 100, 2)

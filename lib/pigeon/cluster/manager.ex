@@ -115,12 +115,14 @@ defmodule Pigeon.Cluster.Manager do
   def handle_call(:destroy_cluster, _from, state) do
     case destroy_all_workers(state) do
       {:ok, _result} ->
-        new_state = %{state |
-          workers: %{},
-          cluster_status: :idle,
-          deployment_config: nil,
-          jobs: %{}
+        new_state = %{
+          state
+          | workers: %{},
+            cluster_status: :idle,
+            deployment_config: nil,
+            jobs: %{}
         }
+
         {:reply, {:ok, :destroyed}, new_state}
 
       {:error, reason} ->
@@ -146,10 +148,7 @@ defmodule Pigeon.Cluster.Manager do
         {:noreply, state}
 
       worker ->
-        updated_worker = %{worker |
-          status: status,
-          last_heartbeat: System.system_time(:second)
-        }
+        updated_worker = %{worker | status: status, last_heartbeat: System.system_time(:second)}
 
         new_workers = Map.put(state.workers, worker_id, updated_worker)
         new_state = %{state | workers: new_workers}
@@ -182,11 +181,7 @@ defmodule Pigeon.Cluster.Manager do
   end
 
   defp handle_deployment_result({:ok, workers}, opts, state) do
-    new_state = %{state |
-      workers: workers,
-      deployment_config: opts,
-      cluster_status: :active
-    }
+    new_state = %{state | workers: workers, deployment_config: opts, cluster_status: :active}
 
     cluster_info = %{
       control_node: state.control_node,
@@ -204,21 +199,24 @@ defmodule Pigeon.Cluster.Manager do
     Logger.info("Waiting for #{length(instances)} workers to come online...")
 
     # Start worker registration timeout
-    timeout = 600_000  # 10 minutes
+    # 10 minutes
+    timeout = 600_000
 
-    workers = instances
-    |> Enum.reduce(%{}, fn instance, acc ->
-      worker_info = %{
-        instance_id: instance.instance_id,
-        public_ip: instance.public_ip,
-        private_ip: instance.private_ip,
-        status: :starting,
-        current_jobs: 0,
-        max_jobs: 4,
-        uptime: 0
-      }
-      Map.put(acc, instance.instance_id, worker_info)
-    end)
+    workers =
+      instances
+      |> Enum.reduce(%{}, fn instance, acc ->
+        worker_info = %{
+          instance_id: instance.instance_id,
+          public_ip: instance.public_ip,
+          private_ip: instance.private_ip,
+          status: :starting,
+          current_jobs: 0,
+          max_jobs: 4,
+          uptime: 0
+        }
+
+        Map.put(acc, instance.instance_id, worker_info)
+      end)
 
     {:ok, workers}
   end
@@ -242,17 +240,19 @@ defmodule Pigeon.Cluster.Manager do
   end
 
   defp scale_down(nodes_to_remove, state) do
-    workers_to_remove = state.workers
-    |> Map.values()
-    |> Enum.take(nodes_to_remove)
+    workers_to_remove =
+      state.workers
+      |> Map.values()
+      |> Enum.take(nodes_to_remove)
 
     case EC2Manager.terminate_instances(workers_to_remove) do
       {:ok, _result} ->
-        remaining_workers = state.workers
-        |> Enum.reject(fn {_id, worker} ->
-          Enum.any?(workers_to_remove, &(&1.instance_id == worker.instance_id))
-        end)
-        |> Map.new()
+        remaining_workers =
+          state.workers
+          |> Enum.reject(fn {_id, worker} ->
+            Enum.any?(workers_to_remove, &(&1.instance_id == worker.instance_id))
+          end)
+          |> Map.new()
 
         {:ok, %{added: 0, removed: nodes_to_remove, remaining_workers: remaining_workers}}
 
@@ -262,16 +262,17 @@ defmodule Pigeon.Cluster.Manager do
   end
 
   defp handle_scale_result({:ok, result}, state) do
-    new_workers = cond do
-      Map.has_key?(result, :new_workers) ->
-        Map.merge(state.workers, result.new_workers)
+    new_workers =
+      cond do
+        Map.has_key?(result, :new_workers) ->
+          Map.merge(state.workers, result.new_workers)
 
-      Map.has_key?(result, :remaining_workers) ->
-        result.remaining_workers
+        Map.has_key?(result, :remaining_workers) ->
+          result.remaining_workers
 
-      true ->
-        state.workers
-    end
+        true ->
+          state.workers
+      end
 
     new_state = %{state | workers: new_workers}
     result_summary = Map.take(result, [:added, :removed]) |> Map.put(:total, map_size(new_workers))

@@ -5,6 +5,13 @@ defmodule Pigeon.Application do
 
   def start(_type, _args) do
     children = [
+      # Registry for circuit breakers
+      {Registry, keys: :unique, name: Pigeon.CircuitBreakerRegistry},
+
+      # Resilience components
+      {Pigeon.Resilience.ErrorLogger, []},
+      {Pigeon.Resilience.FailureDetector, []},
+
       # Core cluster management
       {Pigeon.Cluster.Manager, []},
 

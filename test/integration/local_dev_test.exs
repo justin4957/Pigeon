@@ -160,9 +160,10 @@ defmodule Pigeon.Integration.LocalDevTest do
     @tag timeout: 60_000
     test "can handle high load" do
       # Generate multiple work items
-      work_items = Enum.map(1..10, fn i ->
-        Jason.encode!(%{"g" => "lit", "v" => i})
-      end)
+      work_items =
+        Enum.map(1..10, fn i ->
+          Jason.encode!(%{"g" => "lit", "v" => i})
+        end)
 
       start_time = System.monotonic_time(:millisecond)
 
@@ -172,7 +173,8 @@ defmodule Pigeon.Integration.LocalDevTest do
           processing_time = end_time - start_time
 
           assert results.total_runs >= length(work_items)
-          assert processing_time < 30_000  # Should complete within 30 seconds
+          # Should complete within 30 seconds
+          assert processing_time < 30_000
 
           IO.puts("Processed #{results.total_runs} items in #{processing_time}ms")
 
@@ -248,12 +250,13 @@ defmodule Pigeon.Integration.LocalDevTest do
       work_data = ~s({"g": "lit", "v": 123})
 
       # Run the same work multiple times
-      results = for _ <- 1..5 do
-        case Pigeon.process_work(work_data, GExpressionValidator, workers: 1, iterations: 1) do
-          {:ok, result} -> result.success_rate
-          {:error, _} -> 0.0
+      results =
+        for _ <- 1..5 do
+          case Pigeon.process_work(work_data, GExpressionValidator, workers: 1, iterations: 1) do
+            {:ok, result} -> result.success_rate
+            {:error, _} -> 0.0
+          end
         end
-      end
 
       # All runs should succeed
       assert Enum.all?(results, &(&1 == 1.0))
@@ -264,11 +267,12 @@ defmodule Pigeon.Integration.LocalDevTest do
       work_data = ~s({"g": "lit", "v": 456})
 
       # Start multiple concurrent requests
-      tasks = for i <- 1..3 do
-        Task.async(fn ->
-          Pigeon.process_work(work_data, GExpressionValidator, workers: 1, iterations: 1)
-        end)
-      end
+      tasks =
+        for i <- 1..3 do
+          Task.async(fn ->
+            Pigeon.process_work(work_data, GExpressionValidator, workers: 1, iterations: 1)
+          end)
+        end
 
       # Wait for all to complete
       results = Task.await_many(tasks, 25_000)

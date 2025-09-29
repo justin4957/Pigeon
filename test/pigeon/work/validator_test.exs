@@ -36,7 +36,10 @@ defmodule Pigeon.Work.ValidatorTest do
     @behaviour Validator
 
     def validate(_work, _opts), do: {:ok, %{}}
-    def metadata, do: %{name: "Incomplete", version: "1.0.0", description: "Test", supported_formats: []}
+
+    def metadata,
+      do: %{name: "Incomplete", version: "1.0.0", description: "Test", supported_formats: []}
+
     # Missing validate_batch/2
   end
 
@@ -46,12 +49,15 @@ defmodule Pigeon.Work.ValidatorTest do
     end
 
     test "returns error for incomplete implementation" do
-      assert {:error, {:missing_callbacks, missing}} = Validator.validate_implementation(IncompleteValidator)
+      assert {:error, {:missing_callbacks, missing}} =
+               Validator.validate_implementation(IncompleteValidator)
+
       assert {:validate_batch, 2} in missing
     end
 
     test "returns error for non-existent module" do
-      assert {:error, {:missing_callbacks, _}} = Validator.validate_implementation(NonExistentModule)
+      assert {:error, {:missing_callbacks, _}} =
+               Validator.validate_implementation(NonExistentModule)
     end
   end
 
@@ -97,7 +103,12 @@ defmodule Pigeon.Work.ValidatorTest do
       assert {:ok, batch_result} = TestValidator.validate_batch(work_items, [])
 
       assert length(batch_result) == 3
-      assert [{:ok, %{status: :valid}}, {:error, %{message: "Invalid work"}}, {:error, %{message: "Unknown work"}}] = batch_result
+
+      assert [
+               {:ok, %{status: :valid}},
+               {:error, %{message: "Invalid work"}},
+               {:error, %{message: "Unknown work"}}
+             ] = batch_result
     end
 
     test "TestValidator metadata is correct" do

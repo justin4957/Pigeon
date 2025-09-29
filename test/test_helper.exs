@@ -58,7 +58,7 @@ defmodule TestHelper do
         %{
           worker: "worker1",
           message: "Processing timeout",
-          timestamp: 1234567890
+          timestamp: 1_234_567_890
         }
       ]
     }

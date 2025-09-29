@@ -9,13 +9,18 @@ defmodule Pigeon.Communication.Hub do
 
   alias Pigeon.Communication.Protocol
   alias Pigeon.Jobs.JobManager
+  alias Pigeon.Resilience.CircuitBreaker
+  alias Pigeon.Resilience.Retry
+  alias Pigeon.Resilience.FailureDetector
 
   defstruct [
     :control_node,
     :workers,
     :active_jobs,
     :job_queue,
-    :message_handlers
+    :message_handlers,
+    :failed_jobs,
+    :circuit_breakers
   ]
 
   # Public API
@@ -58,8 +63,14 @@ defmodule Pigeon.Communication.Hub do
       workers: %{},
       active_jobs: %{},
       job_queue: :queue.new(),
-      message_handlers: %{}
+      message_handlers: %{},
+      failed_jobs: %{},
+      circuit_breakers: %{}
     }
+
+    # Start failure detector and register failure callback
+    {:ok, _} = FailureDetector.start_link()
+    FailureDetector.add_failure_callback(&handle_worker_failure/2)
 
     # Start HTTP server for worker communication
     start_communication_server(opts)
@@ -70,23 +81,39 @@ defmodule Pigeon.Communication.Hub do
 
   def handle_call({:register_worker, worker_info}, _from, state) do
     worker_id = worker_info.worker_id
-    updated_worker = Map.merge(worker_info, %{
-      registered_at: System.system_time(:second),
-      last_heartbeat: System.system_time(:second),
-      status: :idle
-    })
+
+    updated_worker =
+      Map.merge(worker_info, %{
+        registered_at: System.system_time(:second),
+        last_heartbeat: System.system_time(:second),
+        status: :idle
+      })
 
     new_workers = Map.put(state.workers, worker_id, updated_worker)
-    new_state = %{state | workers: new_workers}
+
+    # Register worker with failure detector
+    FailureDetector.register_worker(worker_id, worker_info)
+
+    # Create circuit breaker for this worker
+    circuit_breaker_name = "worker_#{worker_id}"
+    {:ok, _} = CircuitBreaker.start_link(name: circuit_breaker_name, failure_threshold: 3)
+
+    new_circuit_breakers = Map.put(state.circuit_breakers, worker_id, circuit_breaker_name)
+    new_state = %{state | workers: new_workers, circuit_breakers: new_circuit_breakers}
 
     Logger.info("Worker registered: #{worker_id} at #{worker_info.endpoint}")
 
-    # Send welcome message to worker
-    send_worker_message(worker_info.endpoint, :welcome, %{
-      control_node: state.control_node,
-      worker_id: worker_id,
-      assigned_at: System.system_time(:second)
-    })
+    # Send welcome message to worker with retry
+    send_worker_message_with_resilience(
+      worker_info.endpoint,
+      :welcome,
+      %{
+        control_node: state.control_node,
+        worker_id: worker_id,
+        assigned_at: System.system_time(:second)
+      },
+      worker_id
+    )
 
     {:reply, {:ok, :registered}, new_state}
   end
@@ -148,14 +175,12 @@ defmodule Pigeon.Communication.Hub do
         updated_job = %{job | results: updated_results}
 
         # Check if job is complete
-        final_job = if job_complete?(updated_job) do
-          %{updated_job |
-            status: :completed,
-            completed_at: System.system_time(:second)
-          }
-        else
-          updated_job
-        end
+        final_job =
+          if job_complete?(updated_job) do
+            %{updated_job | status: :completed, completed_at: System.system_time(:second)}
+          else
+            updated_job
+          end
 
         new_jobs = Map.put(state.active_jobs, job_id, final_job)
         new_state = %{state | active_jobs: new_jobs}
@@ -173,10 +198,10 @@ defmodule Pigeon.Communication.Hub do
         {:noreply, state}
 
       worker ->
-        updated_worker = %{worker |
-          status: status,
-          last_heartbeat: System.system_time(:second)
-        }
+        updated_worker = %{worker | status: status, last_heartbeat: System.system_time(:second)}
+
+        # Update failure detector with heartbeat
+        FailureDetector.heartbeat(worker_id, %{status: status})
 
         new_workers = Map.put(state.workers, worker_id, updated_worker)
         new_state = %{state | workers: new_workers}
@@ -210,10 +235,11 @@ defmodule Pigeon.Communication.Hub do
         {{:value, job}, remaining_queue} ->
           case assign_job_to_workers(job, available_workers) do
             {:ok, assigned_workers} ->
-              updated_job = %{job |
-                status: :running,
-                assigned_workers: assigned_workers,
-                started_at: System.system_time(:second)
+              updated_job = %{
+                job
+                | status: :running,
+                  assigned_workers: assigned_workers,
+                  started_at: System.system_time(:second)
               }
 
               new_jobs = Map.put(state.active_jobs, job.id, updated_job)
@@ -247,23 +273,29 @@ defmodule Pigeon.Communication.Hub do
     selected_workers = Enum.take(available_workers, workers_needed)
 
     # Send job to each selected worker
-    assignments = Enum.map(selected_workers, fn worker ->
-      task_data = %{
-        job_id: job.id,
-        task_type: job.type,
-        data: job.data,
-        worker_id: worker.worker_id
-      }
+    assignments =
+      Enum.map(selected_workers, fn worker ->
+        task_data = %{
+          job_id: job.id,
+          task_type: job.type,
+          data: job.data,
+          worker_id: worker.worker_id
+        }
 
-      case send_worker_message(worker.endpoint, :task_assignment, task_data) do
-        :ok ->
-          %{worker_id: worker.worker_id, status: :assigned}
+        case send_worker_message_with_resilience(
+               worker.endpoint,
+               :task_assignment,
+               task_data,
+               worker.worker_id
+             ) do
+          :ok ->
+            %{worker_id: worker.worker_id, status: :assigned}
 
-        {:error, reason} ->
-          Logger.warn("Failed to assign job to worker #{worker.worker_id}: #{reason}")
-          %{worker_id: worker.worker_id, status: :failed}
-      end
-    end)
+          {:error, reason} ->
+            Logger.warn("Failed to assign job to worker #{worker.worker_id}: #{reason}")
+            %{worker_id: worker.worker_id, status: :failed}
+        end
+      end)
 
     successful_assignments = Enum.filter(assignments, &(&1.status == :assigned))
 
@@ -281,23 +313,35 @@ defmodule Pigeon.Communication.Hub do
       {:error, "No available workers"}
     else
       # Round-robin distribution
-      assignments = work_items
-      |> Enum.with_index()
-      |> Enum.map(fn {work_item, index} ->
-        worker = Enum.at(available_workers, rem(index, length(available_workers)))
-        {work_item, worker}
-      end)
+      assignments =
+        work_items
+        |> Enum.with_index()
+        |> Enum.map(fn {work_item, index} ->
+          worker = Enum.at(available_workers, rem(index, length(available_workers)))
+          {work_item, worker}
+        end)
 
       # Send work to each assigned worker
-      results = Enum.map(assignments, fn {work_item, worker} ->
-        case send_worker_message(worker.endpoint, :work_item, work_item) do
-          :ok ->
-            %{work_item_id: work_item.id, worker_id: worker.worker_id, status: :sent}
+      results =
+        Enum.map(assignments, fn {work_item, worker} ->
+          case send_worker_message_with_resilience(
+                 worker.endpoint,
+                 :work_item,
+                 work_item,
+                 worker.worker_id
+               ) do
+            :ok ->
+              %{work_item_id: work_item.id, worker_id: worker.worker_id, status: :sent}
 
-          {:error, reason} ->
-            %{work_item_id: work_item.id, worker_id: worker.worker_id, status: :failed, reason: reason}
-        end
-      end)
+            {:error, reason} ->
+              %{
+                work_item_id: work_item.id,
+                worker_id: worker.worker_id,
+                status: :failed,
+                reason: reason
+              }
+          end
+        end)
 
       {:ok, results}
     end
@@ -317,9 +361,37 @@ defmodule Pigeon.Communication.Hub do
         :ok
 
       {:ok, %{status: status}} ->
-        {:error, "HTTP #{status}"}
+        {:error, {:http_error, status}}
 
       {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp send_worker_message_with_resilience(endpoint, message_type, data, worker_id) do
+    circuit_breaker_name = "worker_#{worker_id}"
+    start_time = System.monotonic_time(:millisecond)
+
+    result =
+      CircuitBreaker.call(circuit_breaker_name, fn ->
+        Retry.with_http_retry(
+          fn ->
+            send_worker_message(endpoint, message_type, data)
+          end,
+          max_retries: 3,
+          base_delay: 1000
+        )
+      end)
+
+    execution_time = System.monotonic_time(:millisecond) - start_time
+
+    case result do
+      {:ok, _} ->
+        FailureDetector.record_success(worker_id, message_type, execution_time)
+        :ok
+
+      {:error, reason} ->
+        FailureDetector.record_failure(worker_id, message_type, reason, execution_time)
         {:error, reason}
     end
   end
@@ -349,5 +421,99 @@ defmodule Pigeon.Communication.Hub do
   defp generate_job_id do
     "job-" <>
       (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
+  end
+
+  # Worker failure handling
+  defp handle_worker_failure(worker_id, failure_info) do
+    Logger.warn("Worker #{worker_id} failed, reassigning jobs")
+    GenServer.cast(__MODULE__, {:worker_failed, worker_id, failure_info})
+  end
+
+  def handle_cast({:worker_failed, worker_id, failure_info}, state) do
+    # Find all jobs assigned to this worker
+    jobs_to_reassign =
+      state.active_jobs
+      |> Enum.filter(fn {_job_id, job} ->
+        job.status == :running and
+          Enum.any?(job.assigned_workers, &(&1.worker_id == worker_id))
+      end)
+      |> Enum.map(fn {job_id, job} -> {job_id, job} end)
+
+    Logger.info("Reassigning #{length(jobs_to_reassign)} jobs from failed worker #{worker_id}")
+
+    # Mark worker as failed and remove from active workers
+    updated_workers = Map.delete(state.workers, worker_id)
+
+    # Remove circuit breaker for failed worker
+    updated_circuit_breakers = Map.delete(state.circuit_breakers, worker_id)
+
+    # Unregister from failure detector
+    FailureDetector.unregister_worker(worker_id)
+
+    # Process each job for reassignment
+    {updated_jobs, updated_queue} =
+      reassign_jobs(jobs_to_reassign, state.active_jobs, state.job_queue, worker_id)
+
+    new_state = %{
+      state
+      | workers: updated_workers,
+        circuit_breakers: updated_circuit_breakers,
+        active_jobs: updated_jobs,
+        job_queue: updated_queue
+    }
+
+    # Try to assign pending jobs to remaining workers
+    final_state = assign_pending_jobs(new_state)
+
+    {:noreply, final_state}
+  end
+
+  defp reassign_jobs(jobs_to_reassign, active_jobs, job_queue, failed_worker_id) do
+    Enum.reduce(jobs_to_reassign, {active_jobs, job_queue}, fn {job_id, job},
+                                                               {acc_jobs, acc_queue} ->
+      # Remove failed worker from assigned workers
+      remaining_workers = Enum.reject(job.assigned_workers, &(&1.worker_id == failed_worker_id))
+
+      # Remove any results from the failed worker
+      updated_results = Map.delete(job.results, failed_worker_id)
+
+      cond do
+        # If there are still workers assigned to this job, keep it running
+        length(remaining_workers) > 0 ->
+          updated_job = %{
+            job
+            | assigned_workers: remaining_workers,
+              results: updated_results,
+              reassigned_at: System.system_time(:second)
+          }
+
+          {Map.put(acc_jobs, job_id, updated_job), acc_queue}
+
+        # If no workers left, put job back in queue for reassignment
+        true ->
+          updated_job = %{
+            job
+            | status: :pending,
+              assigned_workers: [],
+              results: updated_results,
+              reassigned_at: System.system_time(:second),
+              failure_count: Map.get(job, :failure_count, 0) + 1
+          }
+
+          # Add back to queue unless it has failed too many times
+          if updated_job.failure_count < 3 do
+            Logger.info(
+              "Job #{job_id} returned to queue for reassignment (attempt #{updated_job.failure_count})"
+            )
+
+            new_queue = :queue.in(updated_job, acc_queue)
+            {Map.put(acc_jobs, job_id, updated_job), new_queue}
+          else
+            Logger.error("Job #{job_id} failed too many times, marking as failed")
+            failed_job = %{updated_job | status: :failed, failed_at: System.system_time(:second)}
+            {Map.put(acc_jobs, job_id, failed_job), acc_queue}
+          end
+      end
+    end)
   end
 end

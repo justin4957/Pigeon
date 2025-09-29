@@ -7,7 +7,8 @@ config :pigeon,
   aws: %{
     region: System.get_env("AWS_DEFAULT_REGION") || "us-west-2",
     default_instance_type: "t3.medium",
-    default_ami: "ami-0c02fb55956c7d316",  # Amazon Linux 2023
+    # Amazon Linux 2023
+    default_ami: "ami-0c02fb55956c7d316",
     key_name: System.get_env("AWS_KEY_NAME")
   },
 
