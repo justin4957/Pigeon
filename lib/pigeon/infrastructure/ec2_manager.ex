@@ -5,8 +5,10 @@ defmodule Pigeon.Infrastructure.EC2Manager do
 
   require Logger
   alias ExAws.EC2
+  alias Pigeon.Resilience.Retry
 
-  @default_ami "ami-0c02fb55956c7d316"  # Amazon Linux 2023
+  # Amazon Linux 2023
+  @default_ami "ami-0c02fb55956c7d316"
   @security_group_name "pigeon-workers"
 
   def deploy_instances(config) do
@@ -29,25 +31,35 @@ defmodule Pigeon.Infrastructure.EC2Manager do
 
     Logger.info("Terminating instances: #{inspect(instance_ids)}")
 
-    case EC2.terminate_instances(instance_ids) |> ExAws.request() do
-      {:ok, _response} ->
-        {:ok, :terminated}
+    Retry.with_aws_retry(
+      fn ->
+        case EC2.terminate_instances(instance_ids) |> ExAws.request() do
+          {:ok, _response} ->
+            {:ok, :terminated}
 
-      {:error, reason} ->
-        Logger.error("Failed to terminate instances: #{reason}")
-        {:error, reason}
-    end
+          {:error, reason} ->
+            Logger.error("Failed to terminate instances: #{reason}")
+            {:error, {:aws_error, reason}}
+        end
+      end,
+      max_retries: 3
+    )
   end
 
   def get_instance_status(instance_ids) do
-    case EC2.describe_instances(instance_ids: instance_ids) |> ExAws.request() do
-      {:ok, response} ->
-        instances = extract_instances_from_response(response)
-        {:ok, instances}
+    Retry.with_aws_retry(
+      fn ->
+        case EC2.describe_instances(instance_ids: instance_ids) |> ExAws.request() do
+          {:ok, response} ->
+            instances = extract_instances_from_response(response)
+            {:ok, instances}
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+          {:error, reason} ->
+            {:error, {:aws_error, reason}}
+        end
+      end,
+      max_retries: 2
+    )
   end
 
   # Private Functions
@@ -66,16 +78,21 @@ defmodule Pigeon.Infrastructure.EC2Manager do
   end
 
   defp find_security_group(name) do
-    case EC2.describe_security_groups(group_names: [name]) |> ExAws.request() do
-      {:ok, %{"securityGroupInfo" => [group | _]}} ->
-        {:ok, group["groupId"]}
+    Retry.with_aws_retry(
+      fn ->
+        case EC2.describe_security_groups(group_names: [name]) |> ExAws.request() do
+          {:ok, %{"securityGroupInfo" => [group | _]}} ->
+            {:ok, group["groupId"]}
 
-      {:ok, %{"securityGroupInfo" => []}} ->
-        {:error, :not_found}
+          {:ok, %{"securityGroupInfo" => []}} ->
+            {:error, {:non_retryable, :not_found}}
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+          {:error, reason} ->
+            {:error, {:aws_error, reason}}
+        end
+      end,
+      max_retries: 2
+    )
   end
 
   defp create_security_group(config) do
@@ -83,16 +100,21 @@ defmodule Pigeon.Infrastructure.EC2Manager do
 
     description = "Pigeon worker nodes security group"
 
-    case EC2.create_security_group(@security_group_name, description) |> ExAws.request() do
-      {:ok, %{"groupId" => group_id}} ->
-        case setup_security_group_rules(group_id) do
-          :ok -> {:ok, group_id}
-          {:error, reason} -> {:error, reason}
-        end
+    Retry.with_aws_retry(
+      fn ->
+        case EC2.create_security_group(@security_group_name, description) |> ExAws.request() do
+          {:ok, %{"groupId" => group_id}} ->
+            case setup_security_group_rules(group_id) do
+              :ok -> {:ok, group_id}
+              {:error, reason} -> {:error, reason}
+            end
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+          {:error, reason} ->
+            {:error, {:aws_error, reason}}
+        end
+      end,
+      max_retries: 3
+    )
   end
 
   defp setup_security_group_rules(group_id) do
@@ -271,14 +293,21 @@ defmodule Pigeon.Infrastructure.EC2Manager do
       monitoring: %{enabled: true}
     }
 
-    case EC2.run_instances(launch_params) |> ExAws.request() do
-      {:ok, response} ->
-        instances = extract_instances_from_launch_response(response)
-        {:ok, instances}
+    Retry.with_aws_retry(
+      fn ->
+        case EC2.run_instances(launch_params) |> ExAws.request() do
+          {:ok, response} ->
+            instances = extract_instances_from_launch_response(response)
+            {:ok, instances}
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+          {:error, reason} ->
+            Logger.error("Failed to launch instances: #{inspect(reason)}")
+            {:error, {:aws_error, reason}}
+        end
+      end,
+      max_retries: 3,
+      base_delay: 2000
+    )
   end
 
   defp tag_instances(instances, config) do
@@ -290,7 +319,12 @@ defmodule Pigeon.Infrastructure.EC2Manager do
         %{key: "CreatedBy", value: "pigeon-cli"}
       ]
 
-      case EC2.create_tags([instance.instance_id], tags) |> ExAws.request() do
+      case Retry.with_aws_retry(
+             fn ->
+               EC2.create_tags([instance.instance_id], tags) |> ExAws.request()
+             end,
+             max_retries: 2
+           ) do
         {:ok, _} -> {:cont, {:ok, acc}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
@@ -324,7 +358,8 @@ defmodule Pigeon.Infrastructure.EC2Manager do
     |> Enum.map(fn instance ->
       %{
         instance_id: instance["instanceId"],
-        public_ip: nil,  # Will be populated later
+        # Will be populated later
+        public_ip: nil,
         private_ip: instance["privateIpAddress"],
         status: :pending
       }

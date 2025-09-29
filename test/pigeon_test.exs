@@ -15,12 +15,13 @@ defmodule PigeonTest do
       results = Enum.map(work_items, &validate(&1, opts))
       successes = Enum.count(results, fn {status, _} -> status == :ok end)
 
-      {:ok, %{
-        total: length(work_items),
-        successes: successes,
-        success_rate: successes / length(work_items),
-        individual_results: results
-      }}
+      {:ok,
+       %{
+         total: length(work_items),
+         successes: successes,
+         success_rate: successes / length(work_items),
+         individual_results: results
+       }}
     end
 
     def metadata do
@@ -40,7 +41,8 @@ defmodule PigeonTest do
   end
 
   describe "deploy_cluster/1" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "deploys cluster with default options" do
       # This would require mocking AWS infrastructure
       # For now, test that the function exists and has correct arity
@@ -56,7 +58,8 @@ defmodule PigeonTest do
   end
 
   describe "process_work/3" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "processes work with valid validator" do
       work_data = "test_work"
       validator_module = TestValidator
@@ -72,12 +75,14 @@ defmodule PigeonTest do
       invalid_validator = String
 
       # Should fail validation because String doesn't implement Validator behavior
-      assert {:error, {:missing_callbacks, _}} = Validator.validate_implementation(invalid_validator)
+      assert {:error, {:missing_callbacks, _}} =
+               Validator.validate_implementation(invalid_validator)
     end
   end
 
   describe "process_work_batch/3" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "processes batch work with valid validator" do
       work_items = ["test_work", "error_work", "test_work"]
       validator_module = TestValidator
@@ -88,12 +93,13 @@ defmodule PigeonTest do
       assert {:ok, batch_result} = TestValidator.validate_batch(work_items, opts)
       assert batch_result.total == 3
       assert batch_result.successes == 2
-      assert batch_result.success_rate == 2/3
+      assert batch_result.success_rate == 2 / 3
     end
   end
 
   describe "cluster_status/0" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "returns cluster status" do
       # This would require mocking cluster management
       assert function_exported?(Pigeon, :cluster_status, 0)
@@ -101,7 +107,8 @@ defmodule PigeonTest do
   end
 
   describe "scale_cluster/1" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "scales cluster to target nodes" do
       target_nodes = 5
       # This would require mocking cluster management
@@ -110,7 +117,8 @@ defmodule PigeonTest do
   end
 
   describe "destroy_cluster/0" do
-    @tag :skip # Skip until we have proper mocking infrastructure
+    # Skip until we have proper mocking infrastructure
+    @tag :skip
     test "destroys entire cluster" do
       # This would require mocking cluster management
       assert function_exported?(Pigeon, :destroy_cluster, 0)
@@ -153,7 +161,7 @@ defmodule PigeonTest do
 
       assert batch_result.total == 3
       assert batch_result.successes == 2
-      assert batch_result.success_rate == 2/3
+      assert batch_result.success_rate == 2 / 3
       assert length(batch_result.individual_results) == 3
     end
 

@@ -176,7 +176,8 @@ defmodule Pigeon.Communication.Router do
           status = %{
             hub_status: "running",
             timestamp: System.system_time(:second),
-            active_connections: 0,  # Could implement connection tracking
+            # Could implement connection tracking
+            active_connections: 0,
             uptime: get_uptime()
           }
 

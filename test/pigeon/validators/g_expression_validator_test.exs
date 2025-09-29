@@ -190,7 +190,7 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
       assert {:ok, batch_result} = GExpressionValidator.validate_batch(work_items, [])
       assert batch_result.total == 3
       assert batch_result.successes == 2
-      assert batch_result.success_rate == 2/3
+      assert batch_result.success_rate == 2 / 3
       assert length(batch_result.individual_results) == 3
     end
 
@@ -209,7 +209,10 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
 
       assert metadata.name == "G-Expression Validator"
       assert metadata.version == "1.0.0"
-      assert metadata.description == "Validates G-expressions (generalized functional program representations)"
+
+      assert metadata.description ==
+               "Validates G-expressions (generalized functional program representations)"
+
       assert metadata.supported_formats == ["json"]
     end
   end
@@ -232,7 +235,8 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
       Enum.each(test_cases, fn test_case ->
         case GExpressionValidator.validate(test_case, []) do
           {:ok, _} -> :ok
-          {:error, _} -> :ok  # Some test cases might intentionally fail semantic validation
+          # Some test cases might intentionally fail semantic validation
+          {:error, _} -> :ok
         end
       end)
     end
@@ -241,7 +245,8 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
   describe "syntax validation" do
     test "validates literal structure" do
       valid_lit = %{"g" => "lit", "v" => "hello"}
-      invalid_lit = %{"g" => "lit"}  # Missing 'v'
+      # Missing 'v'
+      invalid_lit = %{"g" => "lit"}
 
       json_valid = Jason.encode!(valid_lit)
       json_invalid = Jason.encode!(invalid_lit)
@@ -252,7 +257,8 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
 
     test "validates reference structure" do
       valid_ref = %{"g" => "ref", "v" => "variable_name"}
-      invalid_ref = %{"g" => "ref", "v" => 123}  # 'v' must be string
+      # 'v' must be string
+      invalid_ref = %{"g" => "ref", "v" => 123}
 
       json_valid = Jason.encode!(valid_ref)
       json_invalid = Jason.encode!(invalid_ref)
@@ -269,6 +275,7 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
           %{"g" => "lit", "v" => 2}
         ]
       }
+
       invalid_vec = %{"g" => "vec", "v" => "not_a_list"}
 
       json_valid = Jason.encode!(valid_vec)
@@ -284,7 +291,9 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
       unbound_ref = %{"g" => "ref", "v" => "unbound_var"}
       json_string = Jason.encode!(unbound_ref)
 
-      assert {:error, result} = GExpressionValidator.validate(json_string, validation_types: [:semantic])
+      assert {:error, result} =
+               GExpressionValidator.validate(json_string, validation_types: [:semantic])
+
       assert Map.has_key?(result.errors, :semantic)
     end
 
@@ -324,7 +333,9 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
   describe "execution validation" do
     test "skips execution validation without test inputs" do
       json_string = Jason.encode!(@valid_literal)
-      assert {:ok, result} = GExpressionValidator.validate(json_string, validation_types: [:execution])
+
+      assert {:ok, result} =
+               GExpressionValidator.validate(json_string, validation_types: [:execution])
 
       execution_result = result.validation_results[:execution]
       assert execution_result == {:ok, %{message: "Execution validation skipped (no test inputs)"}}
@@ -334,10 +345,11 @@ defmodule Pigeon.Validators.GExpressionValidatorTest do
       json_string = Jason.encode!(@valid_literal)
       test_inputs = [1, 2, 3]
 
-      assert {:ok, result} = GExpressionValidator.validate(json_string,
-        validation_types: [:execution],
-        test_inputs: test_inputs
-      )
+      assert {:ok, result} =
+               GExpressionValidator.validate(json_string,
+                 validation_types: [:execution],
+                 test_inputs: test_inputs
+               )
 
       execution_result = result.validation_results[:execution]
       assert {:ok, exec_data} = execution_result

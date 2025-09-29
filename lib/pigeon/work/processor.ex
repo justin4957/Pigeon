@@ -61,12 +61,13 @@ defmodule Pigeon.Work.Processor do
       "Pigeon.Validators.CodeValidator"
     ]
 
-    loaded_validators = Enum.filter(validators, fn validator_name ->
-      case Validator.load_validator(validator_name) do
-        {:ok, _module} -> true
-        {:error, _reason} -> false
-      end
-    end)
+    loaded_validators =
+      Enum.filter(validators, fn validator_name ->
+        case Validator.load_validator(validator_name) do
+          {:ok, _module} -> true
+          {:error, _reason} -> false
+        end
+      end)
 
     {:ok, loaded_validators}
   end
@@ -109,21 +110,25 @@ defmodule Pigeon.Work.Processor do
     chunk_size = calculate_optimal_chunk_size(work_items, opts)
     chunks = Enum.chunk_every(work_items, chunk_size)
 
-    chunk_jobs = Enum.map(chunks, fn chunk ->
-      submit_work_job(chunk, validator_module, opts)
-    end)
+    chunk_jobs =
+      Enum.map(chunks, fn chunk ->
+        submit_work_job(chunk, validator_module, opts)
+      end)
 
     # Wait for all chunk jobs to complete
-    results = Enum.map(chunk_jobs, fn {:ok, job_id} ->
-      wait_for_results(job_id, opts)
-    end)
+    results =
+      Enum.map(chunk_jobs, fn {:ok, job_id} ->
+        wait_for_results(job_id, opts)
+      end)
 
     {:ok, results}
   end
 
   defp wait_for_results(job_id, opts) do
-    timeout = opts[:timeout] || 300_000  # 5 minutes default
-    poll_interval = 2_000  # 2 seconds
+    # 5 minutes default
+    timeout = opts[:timeout] || 300_000
+    # 2 seconds
+    poll_interval = 2_000
 
     wait_for_completion(job_id, timeout, poll_interval)
   end
@@ -190,12 +195,13 @@ defmodule Pigeon.Work.Processor do
       total = result.iterations || 1
       successes = result.successes || 0
 
-      {worker_id, %{
-        total: total,
-        successes: successes,
-        success_rate: if(total > 0, do: successes / total, else: 0.0),
-        execution_time_ms: result.execution_time_ms || 0
-      }}
+      {worker_id,
+       %{
+         total: total,
+         successes: successes,
+         success_rate: if(total > 0, do: successes / total, else: 0.0),
+         execution_time_ms: result.execution_time_ms || 0
+       }}
     end)
     |> Enum.into(%{})
   end
@@ -218,9 +224,9 @@ defmodule Pigeon.Work.Processor do
     # Aggregate results from multiple batch jobs
     all_results = Enum.map(job_results, fn {:ok, results} -> results end)
 
-    total_runs = Enum.sum(Enum.map(all_results, &(&1.total_runs)))
-    total_successes = Enum.sum(Enum.map(all_results, &(&1.successes)))
-    total_errors = Enum.sum(Enum.map(all_results, &(&1.errors)))
+    total_runs = Enum.sum(Enum.map(all_results, & &1.total_runs))
+    total_successes = Enum.sum(Enum.map(all_results, & &1.successes))
+    total_errors = Enum.sum(Enum.map(all_results, & &1.errors))
 
     %{
       total_runs: total_runs,

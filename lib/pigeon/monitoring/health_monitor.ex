@@ -37,7 +37,8 @@ defmodule Pigeon.Monitoring.HealthMonitor do
   # GenServer Implementation
 
   def init(opts) do
-    check_interval = opts[:check_interval] || 30_000  # 30 seconds
+    # 30 seconds
+    check_interval = opts[:check_interval] || 30_000
 
     state = %__MODULE__{
       cluster_health: :healthy,
@@ -68,21 +69,23 @@ defmodule Pigeon.Monitoring.HealthMonitor do
   def handle_call({:check_worker_health, worker_id}, _from, state) do
     case perform_worker_health_check(worker_id) do
       {:ok, health_data} ->
-        new_checks = Map.put(state.worker_health_checks, worker_id, %{
-          status: :healthy,
-          last_check: System.system_time(:second),
-          data: health_data
-        })
+        new_checks =
+          Map.put(state.worker_health_checks, worker_id, %{
+            status: :healthy,
+            last_check: System.system_time(:second),
+            data: health_data
+          })
 
         new_state = %{state | worker_health_checks: new_checks}
         {:reply, {:ok, :healthy}, new_state}
 
       {:error, reason} ->
-        new_checks = Map.put(state.worker_health_checks, worker_id, %{
-          status: :unhealthy,
-          last_check: System.system_time(:second),
-          error: reason
-        })
+        new_checks =
+          Map.put(state.worker_health_checks, worker_id, %{
+            status: :unhealthy,
+            last_check: System.system_time(:second),
+            error: reason
+          })
 
         new_state = %{state | worker_health_checks: new_checks}
         {:reply, {:error, reason}, new_state}
@@ -92,11 +95,12 @@ defmodule Pigeon.Monitoring.HealthMonitor do
   def handle_cast({:report_worker_issue, worker_id, issue}, state) do
     Logger.warning("Worker health issue reported for #{worker_id}: #{inspect(issue)}")
 
-    new_checks = Map.put(state.worker_health_checks, worker_id, %{
-      status: :unhealthy,
-      last_check: System.system_time(:second),
-      issue: issue
-    })
+    new_checks =
+      Map.put(state.worker_health_checks, worker_id, %{
+        status: :unhealthy,
+        last_check: System.system_time(:second),
+        issue: issue
+      })
 
     new_state = %{state | worker_health_checks: new_checks}
     {:noreply, new_state}
@@ -121,22 +125,20 @@ defmodule Pigeon.Monitoring.HealthMonitor do
 
   defp perform_cluster_health_check(state) do
     # Check overall cluster health
-    cluster_status = case Pigeon.Cluster.Manager.get_status() do
-      {:ok, status} ->
-        if status.active_workers > 0 do
-          :healthy
-        else
-          :degraded
-        end
+    cluster_status =
+      case Pigeon.Cluster.Manager.get_status() do
+        {:ok, status} ->
+          if status.active_workers > 0 do
+            :healthy
+          else
+            :degraded
+          end
 
-      {:error, _reason} ->
-        :unhealthy
-    end
+        {:error, _reason} ->
+          :unhealthy
+      end
 
-    %{state |
-      cluster_health: cluster_status,
-      last_check_time: System.system_time(:second)
-    }
+    %{state | cluster_health: cluster_status, last_check_time: System.system_time(:second)}
   end
 
   defp perform_worker_health_check(worker_id) do

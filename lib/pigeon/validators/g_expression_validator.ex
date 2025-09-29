@@ -27,19 +27,21 @@ defmodule Pigeon.Validators.GExpressionValidator do
 
   @impl true
   def validate_batch(work_items, opts \\ []) do
-    results = Enum.map(work_items, fn work_item ->
-      validate(work_item, opts)
-    end)
+    results =
+      Enum.map(work_items, fn work_item ->
+        validate(work_item, opts)
+      end)
 
     successes = Enum.count(results, fn {status, _} -> status == :ok end)
     total = length(results)
 
-    {:ok, %{
-      total: total,
-      successes: successes,
-      success_rate: if(total > 0, do: successes / total, else: 0.0),
-      individual_results: results
-    }}
+    {:ok,
+     %{
+       total: total,
+       successes: successes,
+       success_rate: if(total > 0, do: successes / total, else: 0.0),
+       individual_results: results
+     }}
   end
 
   @impl true
@@ -84,9 +86,10 @@ defmodule Pigeon.Validators.GExpressionValidator do
     ]
 
     # Generate requested number of test cases
-    test_cases = Stream.cycle(base_cases)
-    |> Enum.take(count)
-    |> Enum.map(&Jason.encode!/1)
+    test_cases =
+      Stream.cycle(base_cases)
+      |> Enum.take(count)
+      |> Enum.map(&Jason.encode!/1)
 
     test_cases
   end
@@ -96,28 +99,32 @@ defmodule Pigeon.Validators.GExpressionValidator do
   defp validate_gexpression(gexpr_data, opts) do
     validation_types = opts[:validation_types] || [:syntax, :semantic]
 
-    results = Enum.reduce(validation_types, %{}, fn validation_type, acc ->
-      result = case validation_type do
-        :syntax -> validate_syntax(gexpr_data)
-        :semantic -> validate_semantics(gexpr_data)
-        :execution -> validate_execution(gexpr_data, opts)
-        _ -> {:error, {:unknown_validation_type, validation_type}}
-      end
+    results =
+      Enum.reduce(validation_types, %{}, fn validation_type, acc ->
+        result =
+          case validation_type do
+            :syntax -> validate_syntax(gexpr_data)
+            :semantic -> validate_semantics(gexpr_data)
+            :execution -> validate_execution(gexpr_data, opts)
+            _ -> {:error, {:unknown_validation_type, validation_type}}
+          end
 
-      Map.put(acc, validation_type, result)
-    end)
+        Map.put(acc, validation_type, result)
+      end)
 
     # Check if all validations passed
-    all_passed = results
-    |> Map.values()
-    |> Enum.all?(fn {status, _} -> status == :ok end)
+    all_passed =
+      results
+      |> Map.values()
+      |> Enum.all?(fn {status, _} -> status == :ok end)
 
     if all_passed do
       {:ok, %{validation_results: results, status: :valid}}
     else
-      errors = results
-      |> Enum.filter(fn {_, {status, _}} -> status == :error end)
-      |> Enum.into(%{})
+      errors =
+        results
+        |> Enum.filter(fn {_, {status, _}} -> status == :error end)
+        |> Enum.into(%{})
 
       {:error, %{validation_results: results, errors: errors}}
     end
@@ -272,6 +279,7 @@ defmodule Pigeon.Validators.GExpressionValidator do
     case Map.get(gexpr, "g") do
       "ref" ->
         var_name = Map.get(gexpr, "v")
+
         if var_name in bound_vars or is_builtin_function(var_name) do
           :ok
         else
@@ -285,6 +293,7 @@ defmodule Pigeon.Validators.GExpressionValidator do
 
       "app" ->
         %{"fn" => fn_expr, "args" => args_expr} = Map.get(gexpr, "v")
+
         with :ok <- check_variable_bindings(fn_expr, bound_vars),
              :ok <- check_variable_bindings(args_expr, bound_vars) do
           :ok
@@ -292,6 +301,7 @@ defmodule Pigeon.Validators.GExpressionValidator do
 
       "vec" ->
         items = Map.get(gexpr, "v")
+
         items
         |> Enum.reduce_while(:ok, fn item, :ok ->
           case check_variable_bindings(item, bound_vars) do
@@ -302,6 +312,7 @@ defmodule Pigeon.Validators.GExpressionValidator do
 
       "match" ->
         %{"expr" => expr, "branches" => branches} = Map.get(gexpr, "v")
+
         with :ok <- check_variable_bindings(expr, bound_vars),
              :ok <- check_match_branches_bindings(branches, bound_vars) do
           :ok
@@ -312,7 +323,8 @@ defmodule Pigeon.Validators.GExpressionValidator do
         check_variable_bindings(inner_expr, bound_vars)
 
       _ ->
-        :ok  # Literals and other constructs are fine
+        # Literals and other constructs are fine
+        :ok
     end
   end
 
@@ -347,10 +359,11 @@ defmodule Pigeon.Validators.GExpressionValidator do
 
       test_inputs ->
         # This would run the G-expression with test inputs and validate results
-        {:ok, %{
-          message: "Execution validation completed",
-          test_results: length(test_inputs)
-        }}
+        {:ok,
+         %{
+           message: "Execution validation completed",
+           test_results: length(test_inputs)
+         }}
     end
   end
 end
